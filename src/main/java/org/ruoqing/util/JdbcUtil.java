@@ -1,12 +1,14 @@
 package org.ruoqing.util;
 
+import org.ruoqing.enums.DbTypeEnum;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class JdbcUtil {
 
-    public static final String URL = "jdbc:mysql://192.168.56.10:3306/flower?useUnicode=true&characterEncoding=utf8";
+    public static final String URL = "jdbc:mysql://192.168.56.10:3306/swing?useUnicode=true&characterEncoding=utf8";
     public static final String USERNAME = "root";
     public static final String PASSWORD = "root";
 
@@ -15,13 +17,7 @@ public class JdbcUtil {
     }
 
     public static String getJavaType(String dbType) {
-        return switch (dbType) {
-            case "INT" -> "Integer";
-            case "VARCHAR" -> "String";
-            case "DOUBLE" -> "Double";
-            // 添加其他数据库类型到Java类型的映射
-            default -> "Object";
-        };
+        return DbTypeEnum.valueOf(dbType).getJavaType();
     }
 
     public static String toCamelCase(String columnName) {
@@ -39,6 +35,10 @@ public class JdbcUtil {
             }
         }
         return sb.toString();
+    }
+
+    public static String toCapitalized(String columnName) {
+        return columnName.substring(0, 1).toUpperCase() + columnName.substring(1);
     }
 
 }

@@ -16,7 +16,7 @@ public interface CodeGenerationStrategy {
         while (resultSet.next()) {
             String columnName = resultSet.getString("COLUMN_NAME");
             columnName = JdbcUtil.toCamelCase(columnName);
-            String capitalizedColumnName = columnName.substring(0, 1).toUpperCase() + columnName.substring(1);
+            String capitalizedColumnName = JdbcUtil.toCapitalized(columnName);
             String columnType = resultSet.getString("TYPE_NAME");
 
             // Getter

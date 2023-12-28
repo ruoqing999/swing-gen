@@ -12,7 +12,6 @@ import org.ruoqing.util.JdbcUtil;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 
 public class AutoGen {
@@ -51,14 +50,13 @@ public class AutoGen {
         var outputPath = packageConfig.getPath() + packageConfig.getParentPath();
         genEntity(outputPath, tableName, className);
         genManage(outputPath, className);
-        genDao(outputPath, className);
+        genDao(outputPath, tableName, className);
     }
 
     private void genEntity(String outputPath, String tableName, String className) {
         try (Connection connection = JdbcUtil.getConnection();
              PrintWriter writer = new PrintWriter(new FileWriter(outputPath + className + ".java"))) {
-
-            ResultSet resultSet = connection.getMetaData().getColumns(null, null, tableName, null);
+            ResultSet resultSet = connection.getMetaData().getColumns(connection.getCatalog(), null, tableName, null);
 
             var entityGenerationStrategy = new EntityGenerationStrategy(packageConfig, entityConfig);
             entityGenerationStrategy.generatePackageAndImport(writer, className);
@@ -93,12 +91,12 @@ public class AutoGen {
         }
     }
 
-    private void genDao(String outputPath, String className) {
-        try (Connection connection = JdbcUtil.getConnection();
+    private void genDao(String outputPath, String tableName, String className) {
+        try (Connection con = JdbcUtil.getConnection();
              PrintWriter writer = new PrintWriter(new FileWriter(outputPath + className + "Dao.java"))) {
             var daoGenerationStrategy = new DaoGenerationStrategy(packageConfig);
             daoGenerationStrategy.generatePackageAndImport(writer, className);
-
+            daoGenerationStrategy.gen(writer, tableName, className, con);
             daoGenerationStrategy.generateClassEnd(writer);
         } catch (Exception e) {
             throw new RuntimeException(e);
