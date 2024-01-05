@@ -13,6 +13,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.util.StringJoiner;
 
 public class AutoGen {
 
@@ -58,19 +59,26 @@ public class AutoGen {
              PrintWriter writer = new PrintWriter(new FileWriter(outputPath + className + ".java"))) {
             ResultSet resultSet = connection.getMetaData().getColumns(connection.getCatalog(), null, tableName, null);
 
+            StringJoiner arg1 = new StringJoiner(", ");
+            StringJoiner arg2 = new StringJoiner(",");
+            StringJoiner fieldDefinition = new StringJoiner("\n");
+            while (resultSet.next()) {
+                String columnName = resultSet.getString("COLUMN_NAME");
+                String columnType = resultSet.getString("TYPE_NAME");
+                arg1.add(JdbcUtil.getJavaType(columnType) + " " + JdbcUtil.toCamelCase(columnName));
+                arg2.add(JdbcUtil.toCamelCase(columnName));
+                fieldDefinition.add("    private " + JdbcUtil.getJavaType(columnType) + " " + JdbcUtil.toCamelCase(columnName) + ";");
+            }
+
             var entityGenerationStrategy = new EntityGenerationStrategy(packageConfig, entityConfig);
             entityGenerationStrategy.generatePackageAndImport(writer, className);
 
 
-            // 输出字段定义
-            while (resultSet.next()) {
-                String columnName = resultSet.getString("COLUMN_NAME");
-                String columnType = resultSet.getString("TYPE_NAME");
-                writer.println("    private " + JdbcUtil.getJavaType(columnType) + " " + JdbcUtil.toCamelCase(columnName) + ";");
-            }
+            writer.println(fieldDefinition);
 
             resultSet.beforeFirst(); // 将结果集指针重置到起始位置
             if (!entityConfig.isLombok()) {
+                entityGenerationStrategy.generateConstructor(writer, className, arg1.toString(), arg2.toString());
                 entityGenerationStrategy.generateGetterSetter(resultSet, writer);
             }
             entityGenerationStrategy.generateClassEnd(writer);
@@ -84,7 +92,8 @@ public class AutoGen {
             var manageGenerationStrategy = new ManageGenerationStrategy(packageConfig, swingConfig);
             manageGenerationStrategy.generatePackageAndImport(writer, className);
             manageGenerationStrategy.generateConstructor(writer, className);
-
+            manageGenerationStrategy.generateAddListener(writer, className);
+            manageGenerationStrategy.genCrud(writer, className);
             manageGenerationStrategy.generateClassEnd(writer);
         } catch (Exception e) {
             throw new RuntimeException(e);

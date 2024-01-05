@@ -10,7 +10,16 @@ public interface CodeGenerationStrategy {
 
     void generatePackageAndImport(PrintWriter writer, String className);
 
-    void generateConstructor(PrintWriter writer, String className);
+    default void generateConstructor(PrintWriter writer, String ... args){
+
+    }
+
+    default void generateAddListener(PrintWriter writer, String className){
+
+    }
+
+    default void genCrud(PrintWriter writer, String className) {
+    }
 
     default void generateGetterSetter(ResultSet resultSet, PrintWriter writer) throws SQLException {
         while (resultSet.next()) {

@@ -8,7 +8,6 @@ import org.ruoqing.util.JdbcUtil;
 
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
@@ -32,11 +31,6 @@ public class DaoGenerationStrategy extends EntityDao implements CodeGenerationSt
         writer.println("public class " + className + "Dao {\n");
     }
 
-    @Override
-    public void generateConstructor(PrintWriter writer, String className) {
-
-    }
-
 
     protected void insertSql(PrintWriter writer, Connection con, String tableName) throws SQLException {
         ResultSet resultSet = con.getMetaData().getColumns(con.getCatalog(), null, tableName, null);
@@ -57,7 +51,7 @@ public class DaoGenerationStrategy extends EntityDao implements CodeGenerationSt
             String columnType = resultSet.getString("TYPE_NAME");
             columnStr.add(columnName);
             paramStr.add("?");
-            setStr.add("            statement." + DbTypeEnum.valueOf(columnType).getDbMethod() + count + ", " + tableName + ".get" + capitalizedColumnName + "());");
+            setStr.add("            statement." + DbTypeEnum.valueOf(columnType).getDbSetMethod() + count + ", " + tableName + ".get" + capitalizedColumnName + "());");
         }
         writer.println("            String sql = \" insert into " + tableName + " ( " + columnStr + " ) values ( " + paramStr + " )\";");
         writer.println("            PreparedStatement statement = conn.prepareStatement(sql);");
@@ -86,12 +80,32 @@ public class DaoGenerationStrategy extends EntityDao implements CodeGenerationSt
             }
             count++;
             columnStr.add(columnName);
-            setStr.add("            statement." + DbTypeEnum.valueOf(columnType).getDbMethod() + count + ", " + tableName + ".get" + capitalizedColumnName + "());");
+            setStr.add("            statement." + DbTypeEnum.valueOf(columnType).getDbSetMethod() + count + ", " + tableName + ".get" + capitalizedColumnName + "());");
         }
         writer.println("            String sql = \" update " + tableName + " set " + columnStr + " = ? where " + pKey + " = ?\";");
         writer.println("            PreparedStatement statement = conn.prepareStatement(sql);");
         writer.println(setStr);
-        writer.println("            statement." + DbTypeEnum.valueOf(pKeyType).getDbMethod() + ++count + ", " + tableName + ".get" + pKeyName + "());");
+        writer.println("            statement." + DbTypeEnum.valueOf(pKeyType).getDbSetMethod() + ++count + ", " + tableName + ".get" + pKeyName + "());");
+    }
+
+    @Override
+    protected void querySql(PrintWriter writer, Connection con, String tableName) throws SQLException {
+        ResultSet resultSet = con.getMetaData().getColumns(con.getCatalog(), null, tableName, null);
+        StringJoiner getStr = new StringJoiner("\n");
+        StringJoiner fields = new StringJoiner(", ");
+        while (resultSet.next()) {
+            String columnName = resultSet.getString("COLUMN_NAME");
+            String columnType = resultSet.getString("TYPE_NAME");
+            getStr.add("                " + JdbcUtil.getJavaType(columnType) + " " + columnName + " = resultSet." + DbTypeEnum.valueOf(columnType).getDbGetMethod() + "\"" + columnName + "\");");
+            fields.add(columnName);
+        }
+        writer.println("            String sql = \"select * from " + tableName + "\";");
+        writer.println("            PreparedStatement statement = conn.prepareStatement(sql);");
+        writer.println("            ResultSet resultSet = statement.executeQuery();");
+        writer.println("            while (resultSet.next()) {");
+        writer.println(getStr);
+        writer.println("                list.add(new " + JdbcUtil.toCapitalized(tableName) + "(" + fields + ")" + ");");
+        writer.println("            }");
     }
 
 }

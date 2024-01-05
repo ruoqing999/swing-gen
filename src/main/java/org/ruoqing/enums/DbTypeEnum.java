@@ -5,19 +5,21 @@ import lombok.Getter;
 @Getter
 public enum DbTypeEnum {
 
-    INT("INT", "Integer", "setInt("),
-    VARCHAR("VARCHAR", "String", "setString("),
-    DOUBLE("DOUBLE", "Double", "setDouble("),
+    INT("INT", "Integer", "setInt(", "getInt("),
+    VARCHAR("VARCHAR", "String", "setString(", "getString("),
+    DOUBLE("DOUBLE", "Double", "setDouble(", "getDouble("),
     ;
 
     private final String dbType;
     private final String javaType;
-    private final String dbMethod;
+    private final String dbSetMethod;
+    private final String dbGetMethod;
 
-    DbTypeEnum(String dbType, String javaType, String dbMethod) {
+    DbTypeEnum(String dbType, String javaType, String dbSetMethod, String dbGetMethod) {
         this.dbType = dbType;
         this.javaType = javaType;
-        this.dbMethod = dbMethod;
+        this.dbSetMethod = dbSetMethod;
+        this.dbGetMethod = dbGetMethod;
     }
 
 }

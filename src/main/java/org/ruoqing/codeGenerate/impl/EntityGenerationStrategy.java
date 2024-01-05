@@ -8,9 +8,9 @@ import java.io.PrintWriter;
 
 public class EntityGenerationStrategy implements CodeGenerationStrategy {
 
-    private PackageConfig packageConfig;
+    private final PackageConfig packageConfig;
 
-    private EntityConfig entityConfig;
+    private final EntityConfig entityConfig;
 
     public EntityGenerationStrategy(PackageConfig packageConfig, EntityConfig entityConfig) {
         this.packageConfig = packageConfig;
@@ -22,17 +22,29 @@ public class EntityGenerationStrategy implements CodeGenerationStrategy {
         writer.println("package " + packageConfig.getParentPackage() + ";\n");
 
         if (entityConfig.isLombok()) {
-            writer.println("import lombok.Data;\n");
+            writer.println("import lombok.Data;");
+            writer.println("import lombok.NoArgsConstructor;");
+            writer.println("import lombok.AllArgsConstructor;\n");
             writer.println("@Data");
+            writer.println("@NoArgsConstructor");
+            writer.println("@AllArgsConstructor");
         }
         writer.println("public class " + className + " {");
     }
 
-
     @Override
-    public void generateConstructor(PrintWriter writer, String className) {
+    public void generateConstructor(PrintWriter writer, String... args) {
+        String className = args[0];
+        String arg1 = args[1];
+        String arg2 = args[2];
+        String[] split = arg2.split(",");
+        writer.println("    public " + className + "() {");
+        writer.println("    }\n");
 
+        writer.println("    public " + className + "(" + arg1 + ") {");
+        for (String field : split) {
+            writer.println("        this." + field + " = " + field + ";");
+        }
+        writer.println("    }\n");
     }
-
-
 }

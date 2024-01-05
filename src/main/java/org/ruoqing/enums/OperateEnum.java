@@ -8,8 +8,7 @@ public enum OperateEnum {
     ADD(1, "add("),
     DEL(2, "del("),
     UPDATE(3, "update("),
-    LIST(4, "list("),
-    GET(5, "get("),
+    QUERY(4, "list("),
     UN_KNOW(100, "un_know")
     ;
 

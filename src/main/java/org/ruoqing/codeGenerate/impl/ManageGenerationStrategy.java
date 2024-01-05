@@ -8,9 +8,9 @@ import java.io.PrintWriter;
 
 public class ManageGenerationStrategy implements CodeGenerationStrategy {
 
-    private PackageConfig packageConfig;
+    private final PackageConfig packageConfig;
 
-    private SwingConfig swingConfig;
+    private final SwingConfig swingConfig;
 
     private String jMenuBarAttr;
     private String jMenuAttr;
@@ -47,11 +47,12 @@ public class ManageGenerationStrategy implements CodeGenerationStrategy {
         writer.println("    JMenu " + jMenuAttr + ";");
         writer.println("    JMenuItem " + jMenuItemAdd + ", " + jMenuItemDelete + ", " + jMenuItemUpdate + ", " + jMenuItemView + ", " + jMenuItemSelectReturn + ";");
         writer.println("    JTable " + jTableAttr + ";");
-        writer.println("    DefaultTableModel " + tableModel + ";");
+        writer.println("    DefaultTableModel " + tableModel + ";\n");
     }
 
     @Override
-    public void generateConstructor(PrintWriter writer, String className) {
+    public void generateConstructor(PrintWriter writer, String... args) {
+        String className = args[0];
         var title = this.swingConfig.getTitle();
         var add = ".add(";
         var end = ");";
@@ -70,11 +71,72 @@ public class ManageGenerationStrategy implements CodeGenerationStrategy {
         writer.println("        " + jMenuAttr + add + jMenuItemUpdate + end);
         writer.println("        " + jMenuAttr + add + jMenuItemView + end);
         writer.println("        " + jMenuAttr + add + jMenuItemSelectReturn + end);
+        writer.println("        " + jMenuBarAttr + add + jMenuAttr + end);
         writer.println("        setJMenuBar(" + jMenuBarAttr + ");");
         writer.println("        setVisible(true);");
+//        writer.println("        String[] columnNames = { " + add + " };");
+        writer.println("        setListener();");
+        writer.println("    }\n");
+    }
+
+    @Override
+    public void generateAddListener(PrintWriter writer, String className) {
+        var addListener = ".addActionListener(e -> {";
+        var addListenerSuffix = "});";
+        var Dao = className + "Dao";
+        var dao = className.substring(0, 1).toLowerCase() + className.substring(1) + "Dao ";
+        writer.println("    public void setListener() {\n");
+        writer.println("        " + Dao + " " + dao + "= new " + Dao + "();\n");
+
+        writer.println("        " + jMenuItemAdd + addListener);
+        writer.println("        " + addListenerSuffix + "\n");
+
+        writer.println("        " + jMenuItemDelete + addListener);
+        writer.println("            del(stuDao);");
+        writer.println("        " + addListenerSuffix + "\n");
+
+        writer.println("        " + jMenuItemUpdate + addListener);
+        writer.println("        " + addListenerSuffix + "\n");
+
+        writer.println("        " + jMenuItemView + addListener);
+        writer.println("        " + addListenerSuffix + "\n");
+
+        writer.println("        " + jMenuItemSelectReturn + addListener);
+        writer.println("            tableModel.setRowCount(0);");
+//        writer.println("            loadList();");
+        writer.println("        " + addListenerSuffix + "\n");
+        writer.println("    }\n");
+    }
+
+    @Override
+    public void genCrud(PrintWriter writer, String className) {
+
+        add(writer, className);
+        del(writer, className);
+
+        loadList();
+
+    }
+
+    private void add(PrintWriter writer, String className) {
+
+    }
+
+    private void del(PrintWriter writer, String className) {
+        var Dao = className + "Dao";
+        var dao = className.substring(0, 1).toLowerCase() + className.substring(1) + "Dao";
+        writer.println("    private void del(" + Dao + " " + dao + ") {");
+        writer.println("        int selectedRow = " + jTableAttr + ".getSelectedRow();");
+        writer.println("        if (selectedRow == -1) {");
+        writer.println("            JOptionPane.showMessageDialog(this, \"请选中要操作的数据行\");");
+        writer.println("            return;");
+        writer.println("        }");
+        writer.println("        String code = (String) " + tableModel + ".getValueAt(selectedRow, 0);");
+        writer.println("        " + dao + ".del(Integer.valueOf(code));");
         writer.println("    }");
     }
 
+    private void loadList() {
 
-
+    }
 }
