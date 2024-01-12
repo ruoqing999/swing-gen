@@ -2,14 +2,17 @@ package org.ruoqing;
 
 import org.ruoqing.codeGenerate.impl.DaoGenerationStrategy;
 import org.ruoqing.codeGenerate.impl.EntityGenerationStrategy;
+import org.ruoqing.codeGenerate.impl.LoginGenerationStrategy;
 import org.ruoqing.codeGenerate.impl.ManageGenerationStrategy;
 import org.ruoqing.config.JdbcConfig;
 import org.ruoqing.config.PackageConfig;
 import org.ruoqing.config.EntityConfig;
 import org.ruoqing.config.SwingConfig;
+import org.ruoqing.enums.GlobalConstants;
 import org.ruoqing.util.JdbcUtil;
 
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -47,11 +50,15 @@ public class AutoGen {
 
     public void gen() {
         var tableName = entityConfig.getTableName();
-        var className = tableName.substring(0, 1).toUpperCase() + tableName.substring(1);
+        var camelName = JdbcUtil.toCamelCase(tableName);
+        var className = camelName.substring(0, 1).toUpperCase() + camelName.substring(1);
         var outputPath = packageConfig.getPath() + packageConfig.getParentPath();
         genEntity(outputPath, tableName, className);
         genManage(outputPath, className);
         genDao(outputPath, tableName, className);
+        if (swingConfig.isNeedLogin()) {
+            genLogin(outputPath, className);
+        }
     }
 
     private void genEntity(String outputPath, String tableName, String className) {
@@ -63,19 +70,17 @@ public class AutoGen {
             StringJoiner arg2 = new StringJoiner(",");
             StringJoiner fieldDefinition = new StringJoiner("\n");
             while (resultSet.next()) {
-                String columnName = resultSet.getString("COLUMN_NAME");
-                String columnType = resultSet.getString("TYPE_NAME");
-                arg1.add(JdbcUtil.getJavaType(columnType) + " " + JdbcUtil.toCamelCase(columnName));
+                String columnName = resultSet.getString(GlobalConstants.COLUMN_NAME);
+                String columnType = resultSet.getString(GlobalConstants.TYPE_NAME);
+                arg1.add(JdbcUtil.getJavaType(columnType) + GlobalConstants.SPACE + JdbcUtil.toCamelCase(columnName));
                 arg2.add(JdbcUtil.toCamelCase(columnName));
-                fieldDefinition.add("    private " + JdbcUtil.getJavaType(columnType) + " " + JdbcUtil.toCamelCase(columnName) + ";");
+                fieldDefinition.add("    " + GlobalConstants.PRIVATE + GlobalConstants.SPACE + JdbcUtil.getJavaType(columnType) +
+                        GlobalConstants.SPACE + JdbcUtil.toCamelCase(columnName) + GlobalConstants.SEMICOLON);
             }
 
             var entityGenerationStrategy = new EntityGenerationStrategy(packageConfig, entityConfig);
             entityGenerationStrategy.generatePackageAndImport(writer, className);
-
-
             writer.println(fieldDefinition);
-
             resultSet.beforeFirst(); // 将结果集指针重置到起始位置
             if (!entityConfig.isLombok()) {
                 entityGenerationStrategy.generateConstructor(writer, className, arg1.toString(), arg2.toString());
@@ -93,7 +98,7 @@ public class AutoGen {
             manageGenerationStrategy.generatePackageAndImport(writer, className);
             manageGenerationStrategy.generateConstructor(writer, className);
             manageGenerationStrategy.generateAddListener(writer, className);
-            manageGenerationStrategy.genCrud(writer, className);
+            manageGenerationStrategy.genMethod(writer, className, null);
             manageGenerationStrategy.generateClassEnd(writer);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -114,6 +119,20 @@ public class AutoGen {
 
     private void genMain() {
 
+    }
+
+    private void genLogin(String outputPath, String manageClassName) {
+        var className = "Login";
+        try (PrintWriter writer = new PrintWriter(new FileWriter(outputPath + className + ".java"))) {
+            var loginGenerationStrategy = new LoginGenerationStrategy(packageConfig, swingConfig);
+            loginGenerationStrategy.generatePackageAndImport(writer, className);
+            loginGenerationStrategy.genVariable(writer);
+            loginGenerationStrategy.generateConstructor(writer, className);
+            loginGenerationStrategy.genMethod(writer, className, manageClassName);
+            loginGenerationStrategy.generateClassEnd(writer);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

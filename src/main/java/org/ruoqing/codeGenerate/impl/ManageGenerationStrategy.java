@@ -3,8 +3,11 @@ package org.ruoqing.codeGenerate.impl;
 import org.ruoqing.codeGenerate.CodeGenerationStrategy;
 import org.ruoqing.config.PackageConfig;
 import org.ruoqing.config.SwingConfig;
+import org.ruoqing.util.CodeUtil;
 
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.List;
 
 public class ManageGenerationStrategy implements CodeGenerationStrategy {
 
@@ -29,10 +32,13 @@ public class ManageGenerationStrategy implements CodeGenerationStrategy {
 
     @Override
     public void generatePackageAndImport(PrintWriter writer, String className) {
-        writer.println("package " + packageConfig.getParentPackage() + ";");
-        writer.println("\nimport javax.swing.*;");
-        writer.println("import javax.swing.table.DefaultTableModel;");
-        writer.println("import java.awt.*;");
+        CodeUtil.definePackagePath(writer, packageConfig.getParentPackage());
+        var imports = Arrays.asList("javax.swing.*", "javax.swing.table.DefaultTableModel",
+                "java.awt.*");
+        for (String anImport : imports) {
+            CodeUtil.defineImportPath(writer, anImport);
+        }
+
         writer.println("\npublic class " + className + "Manage extends JFrame {");
         jMenuBarAttr = "jMenuBar" + className;
         jMenuAttr = "jMenu" + className;
@@ -84,15 +90,15 @@ public class ManageGenerationStrategy implements CodeGenerationStrategy {
         var addListener = ".addActionListener(e -> {";
         var addListenerSuffix = "});";
         var Dao = className + "Dao";
-        var dao = className.substring(0, 1).toLowerCase() + className.substring(1) + "Dao ";
+        var dao = className.substring(0, 1).toLowerCase() + className.substring(1) + "Dao";
         writer.println("    public void setListener() {\n");
-        writer.println("        " + Dao + " " + dao + "= new " + Dao + "();\n");
+        writer.println("        " + Dao + " " + dao + " = new " + Dao + "();\n");
 
         writer.println("        " + jMenuItemAdd + addListener);
         writer.println("        " + addListenerSuffix + "\n");
 
         writer.println("        " + jMenuItemDelete + addListener);
-        writer.println("            del(stuDao);");
+        writer.println("            del(" + dao + ");");
         writer.println("        " + addListenerSuffix + "\n");
 
         writer.println("        " + jMenuItemUpdate + addListener);
@@ -109,7 +115,7 @@ public class ManageGenerationStrategy implements CodeGenerationStrategy {
     }
 
     @Override
-    public void genCrud(PrintWriter writer, String className) {
+    public void genMethod(PrintWriter writer, String className, String manageClassName) {
 
         add(writer, className);
         del(writer, className);

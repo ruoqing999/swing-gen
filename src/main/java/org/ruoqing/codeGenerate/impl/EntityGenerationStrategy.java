@@ -3,8 +3,10 @@ package org.ruoqing.codeGenerate.impl;
 import org.ruoqing.codeGenerate.CodeGenerationStrategy;
 import org.ruoqing.config.EntityConfig;
 import org.ruoqing.config.PackageConfig;
+import org.ruoqing.util.CodeUtil;
 
 import java.io.PrintWriter;
+import java.util.Arrays;
 
 public class EntityGenerationStrategy implements CodeGenerationStrategy {
 
@@ -19,17 +21,20 @@ public class EntityGenerationStrategy implements CodeGenerationStrategy {
 
     @Override
     public void generatePackageAndImport(PrintWriter writer, String className) {
-        writer.println("package " + packageConfig.getParentPackage() + ";\n");
-
+        CodeUtil.definePackagePath(writer, packageConfig.getParentPackage());
+//        writer.println("import java.math.BigDecimal;");
         if (entityConfig.isLombok()) {
-            writer.println("import lombok.Data;");
-            writer.println("import lombok.NoArgsConstructor;");
-            writer.println("import lombok.AllArgsConstructor;\n");
-            writer.println("@Data");
-            writer.println("@NoArgsConstructor");
-            writer.println("@AllArgsConstructor");
+            var imports = Arrays.asList("lombok.Data", "lombok.NoArgsConstructor", "lombok.AllArgsConstructor");
+            for (String s : imports) {
+                CodeUtil.defineImportPath(writer, s);
+            }
+
+            var annotations = Arrays.asList("Data", "NoArgsConstructor", "AllArgsConstructor");
+            for (String annotation : annotations) {
+                CodeUtil.defineAnnotation(writer, annotation);
+            }
         }
-        writer.println("public class " + className + " {");
+        CodeUtil.defineClassPrefix(writer, className);
     }
 
     @Override

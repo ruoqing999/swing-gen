@@ -3,6 +3,7 @@ package org.ruoqing;
 
 import org.ruoqing.enums.DbTypeEnum;
 import org.ruoqing.enums.OperateEnum;
+import org.ruoqing.util.JdbcUtil;
 
 import java.io.PrintWriter;
 import java.sql.Connection;
@@ -34,7 +35,7 @@ public abstract class EntityDao {
             writer.println("    public List<" + className + "> " + OperateEnum.valueOf(code).getDesc() + ") {");
             writer.println("        List<" + className + "> list = new ArrayList<>();");
         } else {
-            writer.println("    public void " + OperateEnum.valueOf(code).getDesc() + className + " " + tableName + ") {");
+            writer.println("    public void " + OperateEnum.valueOf(code).getDesc() + className + " " + JdbcUtil.toCamelCase(tableName) + ") {");
         }
         writer.println("        try (Connection conn = JdbcUtil.getConnection()) {");
     }
@@ -66,11 +67,13 @@ public abstract class EntityDao {
                 primaryKeyType = columnType;
             }
         }
-        writer.println("    public void del(" + DbTypeEnum.valueOf(primaryKeyType).getJavaType() + " " + primaryKeyName + ") {");
+        assert primaryKeyName != null;
+        String camelName = JdbcUtil.toCamelCase(primaryKeyName);
+        writer.println("    public void del(" + DbTypeEnum.valueOf(primaryKeyType).getJavaType() + " " + camelName + ") {");
         writer.println("        try (Connection conn = JdbcUtil.getConnection()) {");
         writer.println("            String sql = \"delete from " + tableName + " where " + primaryKeyName + " = ?\";");
         writer.println("            PreparedStatement statement = conn.prepareStatement(sql);");
-        writer.println("            statement.setInt(1, " + primaryKeyName + ");");
+        writer.println("            statement.setInt(1, " + camelName + ");");
         suffix(writer, OperateEnum.DEL.getCode());
     }
 

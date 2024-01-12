@@ -8,17 +8,21 @@ import java.sql.SQLException;
 
 public interface CodeGenerationStrategy {
 
+    String END = "}";
+
     void generatePackageAndImport(PrintWriter writer, String className);
 
-    default void generateConstructor(PrintWriter writer, String ... args){
+    default void genVariable(PrintWriter writer){
 
     }
 
-    default void generateAddListener(PrintWriter writer, String className){
-
+    default void generateConstructor(PrintWriter writer, String... args) {
     }
 
-    default void genCrud(PrintWriter writer, String className) {
+    default void generateAddListener(PrintWriter writer, String className) {
+    }
+
+    default void genMethod(PrintWriter writer, String className, String manageClassName) {
     }
 
     default void generateGetterSetter(ResultSet resultSet, PrintWriter writer) throws SQLException {
@@ -41,7 +45,7 @@ public interface CodeGenerationStrategy {
     }
 
     default void generateClassEnd(PrintWriter writer) {
-        writer.println("}");
+        writer.println(END);
     }
 
 }

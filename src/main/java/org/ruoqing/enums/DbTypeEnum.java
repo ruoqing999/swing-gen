@@ -8,6 +8,7 @@ public enum DbTypeEnum {
     INT("INT", "Integer", "setInt(", "getInt("),
     VARCHAR("VARCHAR", "String", "setString(", "getString("),
     DOUBLE("DOUBLE", "Double", "setDouble(", "getDouble("),
+    DECIMAL("DECIMAL", "BigDecimal", "setBigDecimal(", "getBigDecimal("),
     ;
 
     private final String dbType;
