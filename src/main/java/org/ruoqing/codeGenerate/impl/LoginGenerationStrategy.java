@@ -8,6 +8,7 @@ import org.ruoqing.util.CodeUtil;
 
 import java.awt.*;
 import java.io.PrintWriter;
+import java.util.Arrays;
 
 public class LoginGenerationStrategy implements CodeGenerationStrategy {
 
@@ -33,11 +34,11 @@ public class LoginGenerationStrategy implements CodeGenerationStrategy {
     @Override
     public void generatePackageAndImport(PrintWriter writer, String className) {
         CodeUtil.definePackagePath(writer, packageConfig.getParentPackage());
-        writer.println(GlobalConstants.IMPORT + GlobalConstants.SPACE + "javax.swing.*;");
-        writer.println(GlobalConstants.IMPORT + GlobalConstants.SPACE + "java.awt.*;" + GlobalConstants.NEXT_LINE);
-        writer.println(GlobalConstants.PUBLIC + GlobalConstants.SPACE + GlobalConstants.CLASS +
-                GlobalConstants.SPACE + className + GlobalConstants.SPACE + GlobalConstants.EXTEND
-                + GlobalConstants.SPACE+ GlobalConstants.J_FRAME + GlobalConstants.LEFT + GlobalConstants.NEXT_LINE);
+        var imports = Arrays.asList("javax.swing.*", "java.awt.*");
+        for (String anImport : imports) {
+            CodeUtil.defineImportPath(writer, anImport);
+        }
+        CodeUtil.defineSubClassPrefix(writer, className, GlobalConstants.J_FRAME);
     }
 
     @Override

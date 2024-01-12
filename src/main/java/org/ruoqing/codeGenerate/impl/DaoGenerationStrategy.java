@@ -12,6 +12,7 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.StringJoiner;
 
@@ -26,12 +27,11 @@ public class DaoGenerationStrategy extends EntityDao implements CodeGenerationSt
     @Override
     public void generatePackageAndImport(PrintWriter writer, String className) {
         CodeUtil.definePackagePath(writer, packageConfig.getParentPackage());
-        writer.println("import org.ruoqing.util.JdbcUtil;\n");
-        writer.println("import java.math.BigDecimal;");
-        writer.println("import java.sql.*;");
-        writer.println("import java.util.ArrayList;");
-        writer.println("import java.util.List;\n");
-        writer.println("public class " + className + "Dao {\n");
+        var imports = Arrays.asList("org.ruoqing.util.JdbcUtil", "java.sql.*", "java.util.ArrayList", "java.util.List");
+        for (String anImport : imports) {
+            CodeUtil.defineImportPath(writer, anImport);
+        }
+        CodeUtil.defineClassPrefix(writer, className + GlobalConstants.DAO);
     }
 
 

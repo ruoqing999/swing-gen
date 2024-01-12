@@ -1,5 +1,6 @@
 package org.ruoqing.codeGenerate;
 
+import org.ruoqing.enums.GlobalConstants;
 import org.ruoqing.util.JdbcUtil;
 
 import java.io.PrintWriter;
@@ -7,8 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public interface CodeGenerationStrategy {
-
-    String END = "}";
 
     void generatePackageAndImport(PrintWriter writer, String className);
 
@@ -45,7 +44,7 @@ public interface CodeGenerationStrategy {
     }
 
     default void generateClassEnd(PrintWriter writer) {
-        writer.println(END);
+        writer.println(GlobalConstants.END);
     }
 
 }

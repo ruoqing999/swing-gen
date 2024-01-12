@@ -3,11 +3,13 @@ package org.ruoqing.codeGenerate.impl;
 import org.ruoqing.codeGenerate.CodeGenerationStrategy;
 import org.ruoqing.config.PackageConfig;
 import org.ruoqing.config.SwingConfig;
+import org.ruoqing.enums.GlobalConstants;
 import org.ruoqing.util.CodeUtil;
 
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.List;
 
 public class ManageGenerationStrategy implements CodeGenerationStrategy {
 
@@ -15,15 +17,15 @@ public class ManageGenerationStrategy implements CodeGenerationStrategy {
 
     private final SwingConfig swingConfig;
 
-    private String jMenuBarAttr;
-    private String jMenuAttr;
-    private String jTableAttr;
-    private String tableModel;
-    private String jMenuItemAdd;
-    private String jMenuItemDelete;
-    private String jMenuItemUpdate;
-    private String jMenuItemView;
-    private String jMenuItemSelectReturn;
+    private final String jMenuBar = "jMenuBar";
+    private final String jMenu = "jMenu";
+    private final String jTable = "jTable";
+    private final String tableModel = "tableModel";
+    private final String jMenuItemAdd = "jMenuItemAdd";
+    private final String jMenuItemDelete = "jMenuItemDelete";
+    private final String jMenuItemUpdate = "jMenuItemUpdate";
+    private final String jMenuItemView = "jMenuItemView";
+    private final String jMenuItemSelectReturn = "jMenuItemSelectReturn";
 
     public ManageGenerationStrategy(PackageConfig packageConfig, SwingConfig swingConfig) {
         this.packageConfig = packageConfig;
@@ -38,60 +40,61 @@ public class ManageGenerationStrategy implements CodeGenerationStrategy {
         for (String anImport : imports) {
             CodeUtil.defineImportPath(writer, anImport);
         }
-
-        writer.println("\npublic class " + className + "Manage extends JFrame {");
-        jMenuBarAttr = "jMenuBar" + className;
-        jMenuAttr = "jMenu" + className;
-        jTableAttr = "jTable" + className;
-        tableModel = "tableModel";
-        jMenuItemAdd = "jMenuItemAdd" + className;
-        jMenuItemDelete = "jMenuItemDelete" + className;
-        jMenuItemUpdate = "jMenuItemUpdate" + className;
-        jMenuItemView = "jMenuItemSelect" + className;
-        jMenuItemSelectReturn = "jMenuItemSelectReturn";
-        writer.println("    JMenuBar " + jMenuBarAttr + ";");
-        writer.println("    JMenu " + jMenuAttr + ";");
-        writer.println("    JMenuItem " + jMenuItemAdd + ", " + jMenuItemDelete + ", " + jMenuItemUpdate + ", " + jMenuItemView + ", " + jMenuItemSelectReturn + ";");
-        writer.println("    JTable " + jTableAttr + ";");
-        writer.println("    DefaultTableModel " + tableModel + ";\n");
+        writer.println();
+        CodeUtil.defineSubClassPrefix(writer, className + GlobalConstants.MANAGE, GlobalConstants.J_FRAME);
+        CodeUtil.defineField(writer, JMenuBar.class, jMenuBar, className);
+        CodeUtil.defineField(writer, JMenu.class, jMenu, className);
+        CodeUtil.defineField(writer, JMenuItem.class, jMenuItemAdd + ", " + jMenuItemDelete + ", " +
+                jMenuItemUpdate + ", " + jMenuItemView + ", " + jMenuItemSelectReturn, className);
+        CodeUtil.defineField(writer, JTable.class, jTable, className);
+        CodeUtil.defineField(writer, DefaultTableModel.class, tableModel, className);
     }
 
     @Override
     public void generateConstructor(PrintWriter writer, String... args) {
         String className = args[0];
         var title = this.swingConfig.getTitle();
-        var add = ".add(";
-        var end = ");";
-        writer.println("    public " + className + "Manage() {");
-        writer.println("        setTitle(\"" + title + "管理系统" + "\");");
+        CodeUtil.defineConstructor(writer, className + GlobalConstants.MANAGE);
+        writer.println("        setTitle(\"" + title + GlobalConstants.MANAGE_NAME + "\");");
         writer.println("        setBounds(100, 100, 500, 500);");
-        writer.println("        " + jMenuBarAttr + " = new JMenuBar();");
-        writer.println("        " + jMenuAttr + " = new JMenu(\"" + title + "\");");
-        writer.println("        " + jMenuItemAdd + " = new JMenuItem(\"添加" + title + "信息\");");
-        writer.println("        " + jMenuItemDelete + " = new JMenuItem(\"删除" + title + "信息\");");
-        writer.println("        " + jMenuItemUpdate + " = new JMenuItem(\"修改" + title + "信息\");");
-        writer.println("        " + jMenuItemView + " = new JMenuItem(\"查询所有" + title + "信息\");");
-        writer.println("        " + jMenuItemSelectReturn + " = new JMenuItem(\"返回\");");
-        writer.println("        " + jMenuAttr + add + jMenuItemAdd + end);
-        writer.println("        " + jMenuAttr + add + jMenuItemDelete + end);
-        writer.println("        " + jMenuAttr + add + jMenuItemUpdate + end);
-        writer.println("        " + jMenuAttr + add + jMenuItemView + end);
-        writer.println("        " + jMenuAttr + add + jMenuItemSelectReturn + end);
-        writer.println("        " + jMenuBarAttr + add + jMenuAttr + end);
-        writer.println("        setJMenuBar(" + jMenuBarAttr + ");");
+        newObject(writer, jMenuBar, JMenuBar.class, "");
+        newObject(writer, jMenu, JMenu.class, "\"" + title + "\"");
+        newObject(writer, jMenuItemAdd, JMenuItem.class, "\"添加" + title + "信息\"");
+        newObject(writer, jMenuItemDelete, JMenuItem.class, "\"删除" + title + "信息\"");
+        newObject(writer, jMenuItemUpdate, JMenuItem.class, "\"修改" + title + "信息\"");
+        newObject(writer, jMenuItemView, JMenuItem.class, "\"查询所有" + title + "信息\"");
+        newObject(writer, jMenuItemSelectReturn, JMenuItem.class, "\"返回\"");
+        var menuItems = Arrays.asList(jMenuItemAdd, jMenuItemDelete, jMenuItemUpdate, jMenuItemView, jMenuItemSelectReturn);
+        for (String menuItem : menuItems) {
+            menuAdd(writer, jMenu, menuItem);
+        }
+        menuAdd(writer, jMenuBar, jMenu);
+        writer.println("        setJMenuBar(" + jMenuBar + ");");
         writer.println("        setVisible(true);");
-//        writer.println("        String[] columnNames = { " + add + " };");
         writer.println("        setListener();");
-        writer.println("    }\n");
+//        writer.println("        String[] columnNames = { " + add + " };");
+        writer.println(GlobalConstants.FIRST_LEVEL_END + GlobalConstants.NEXT_LINE);
+    }
+
+    private void newObject(PrintWriter writer, String attrName, Class<?> clazz, String val) {
+        writer.println("        " + attrName + GlobalConstants.SPACE + GlobalConstants.EQUAL + GlobalConstants.SPACE +
+                GlobalConstants.NEW + GlobalConstants.SPACE + clazz.getSimpleName() + GlobalConstants.OPEN + val +
+                GlobalConstants.CLOSE + GlobalConstants.SEMICOLON);
+    }
+
+    private void menuAdd(PrintWriter writer, String from, String item) {
+        writer.println("        " + from + GlobalConstants.DOT + GlobalConstants.ADD + GlobalConstants.OPEN + item +
+                GlobalConstants.CLOSE + GlobalConstants.SEMICOLON);
     }
 
     @Override
     public void generateAddListener(PrintWriter writer, String className) {
+
         var addListener = ".addActionListener(e -> {";
         var addListenerSuffix = "});";
-        var Dao = className + "Dao";
-        var dao = className.substring(0, 1).toLowerCase() + className.substring(1) + "Dao";
-        writer.println("    public void setListener() {\n");
+        var Dao = className + GlobalConstants.DAO;
+        var dao = className.substring(0, 1).toLowerCase() + className.substring(1) + GlobalConstants.DAO;
+        CodeUtil.defineMethodPrefix(writer, GlobalConstants.PUBLIC, GlobalConstants.VOID, "setListener");
         writer.println("        " + Dao + " " + dao + " = new " + Dao + "();\n");
 
         writer.println("        " + jMenuItemAdd + addListener);
@@ -129,10 +132,10 @@ public class ManageGenerationStrategy implements CodeGenerationStrategy {
     }
 
     private void del(PrintWriter writer, String className) {
-        var Dao = className + "Dao";
-        var dao = className.substring(0, 1).toLowerCase() + className.substring(1) + "Dao";
+        var Dao = className + GlobalConstants.DAO;
+        var dao = className.substring(0, 1).toLowerCase() + className.substring(1) + GlobalConstants.DAO;
         writer.println("    private void del(" + Dao + " " + dao + ") {");
-        writer.println("        int selectedRow = " + jTableAttr + ".getSelectedRow();");
+        writer.println("        int selectedRow = " + jTable + ".getSelectedRow();");
         writer.println("        if (selectedRow == -1) {");
         writer.println("            JOptionPane.showMessageDialog(this, \"请选中要操作的数据行\");");
         writer.println("            return;");

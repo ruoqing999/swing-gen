@@ -9,6 +9,8 @@ public interface GlobalConstants {
 
     String MANAGE_NAME = "管理系统";
 
+    String FIRST_TAB = "    ";
+    String END = "}";
     String FIRST_LEVEL_END = "    }";
 
     String PACKAGE = "package";
@@ -34,6 +36,8 @@ public interface GlobalConstants {
     String NEXT_LINE = "\n";
 
     String ADD = "add";
+    String DAO = "Dao";
+    String MANAGE = "Manage";
     String J_FRAME = JFrame.class.getSimpleName();
     String J_LABEL = JLabel.class.getSimpleName();
     String J_TEXT_FIELD = JTextField.class.getSimpleName();
