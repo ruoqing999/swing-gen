@@ -21,7 +21,7 @@ public interface CodeGenerationStrategy {
     default void generateAddListener(PrintWriter writer, String className) {
     }
 
-    default void genMethod(PrintWriter writer, String className, String manageClassName) {
+    default void genMethod(PrintWriter writer, String... args) {
     }
 
     default void generateGetterSetter(ResultSet resultSet, PrintWriter writer) throws SQLException {

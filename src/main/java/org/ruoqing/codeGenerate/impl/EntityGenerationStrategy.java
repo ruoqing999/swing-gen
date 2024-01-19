@@ -28,7 +28,7 @@ public class EntityGenerationStrategy implements CodeGenerationStrategy {
             for (String s : imports) {
                 CodeUtil.defineImportPath(writer, s);
             }
-
+            writer.println();
             var annotations = Arrays.asList("Data", "NoArgsConstructor", "AllArgsConstructor");
             for (String annotation : annotations) {
                 CodeUtil.defineAnnotation(writer, annotation);

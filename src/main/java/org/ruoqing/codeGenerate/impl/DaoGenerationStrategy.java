@@ -42,12 +42,10 @@ public class DaoGenerationStrategy extends EntityDao implements CodeGenerationSt
         StringJoiner setStr = new StringJoiner("\n");
         int count = 0;
         while (resultSet.next()) {
-
-            boolean isAutoIncrement = Objects.equals(resultSet.getString("IS_AUTOINCREMENT"), "YES");
+            boolean isAutoIncrement = Objects.equals(resultSet.getString(GlobalConstants.IS_AUTOINCREMENT), GlobalConstants.YES);
             if (isAutoIncrement) {
                 continue;
             }
-
             count++;
             String columnName = resultSet.getString(GlobalConstants.COLUMN_NAME);
             String capitalizedColumnName = JdbcUtil.toCapitalized(JdbcUtil.toCamelCase(columnName));

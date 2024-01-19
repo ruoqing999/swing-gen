@@ -1,9 +1,6 @@
 package org.ruoqing;
 
-import org.ruoqing.codeGenerate.impl.DaoGenerationStrategy;
-import org.ruoqing.codeGenerate.impl.EntityGenerationStrategy;
-import org.ruoqing.codeGenerate.impl.LoginGenerationStrategy;
-import org.ruoqing.codeGenerate.impl.ManageGenerationStrategy;
+import org.ruoqing.codeGenerate.impl.*;
 import org.ruoqing.config.JdbcConfig;
 import org.ruoqing.config.PackageConfig;
 import org.ruoqing.config.EntityConfig;
@@ -54,11 +51,12 @@ public class AutoGen {
         var className = camelName.substring(0, 1).toUpperCase() + camelName.substring(1);
         var outputPath = packageConfig.getPath() + packageConfig.getParentPath();
         genEntity(outputPath, tableName, className);
-        genManage(outputPath, className);
+        genManage(outputPath, tableName, className);
         genDao(outputPath, tableName, className);
         if (swingConfig.isNeedLogin()) {
             genLogin(outputPath, className);
         }
+        genMain(outputPath, className + "Manage");
     }
 
     private void genEntity(String outputPath, String tableName, String className) {
@@ -92,13 +90,26 @@ public class AutoGen {
         }
     }
 
-    private void genManage(String outputPath, String className) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(outputPath + className + "Manage.java"))) {
+    private void genManage(String outputPath, String tableName, String className) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(outputPath + className + "Manage.java"));
+             Connection connection = JdbcUtil.getConnection()) {
+            ResultSet resultSet = connection.getMetaData().getColumns(connection.getCatalog(), null, tableName, null);
+
+            var stringJoiner = new StringJoiner(",");
+            var fieldJoiner = new StringJoiner(", ");
+            while (resultSet.next()) {
+                var columnName = resultSet.getString(GlobalConstants.COLUMN_NAME);
+                var columnType = resultSet.getString(GlobalConstants.TYPE_NAME);
+                String camelCase = JdbcUtil.toCamelCase(columnName);
+                stringJoiner.add(camelCase + "-" + columnType);
+                camelCase = "\"" + camelCase + "\"";
+                fieldJoiner.add(camelCase);
+            }
             var manageGenerationStrategy = new ManageGenerationStrategy(packageConfig, swingConfig);
             manageGenerationStrategy.generatePackageAndImport(writer, className);
-            manageGenerationStrategy.generateConstructor(writer, className);
+            manageGenerationStrategy.generateConstructor(writer, className, fieldJoiner.toString());
             manageGenerationStrategy.generateAddListener(writer, className);
-            manageGenerationStrategy.genMethod(writer, className, null);
+            manageGenerationStrategy.genMethod(writer, className, stringJoiner.toString());
             manageGenerationStrategy.generateClassEnd(writer);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -117,8 +128,16 @@ public class AutoGen {
         }
     }
 
-    private void genMain() {
-
+    private void genMain(String outputPath, String manageClassName) {
+        var className = "Main";
+        try (PrintWriter writer = new PrintWriter(new FileWriter(outputPath + className + ".java"))) {
+            var mainGenerationStrategy = new MainGenerationStrategy(swingConfig, packageConfig);
+            mainGenerationStrategy.generatePackageAndImport(writer, className);
+            mainGenerationStrategy.genMethod(writer, manageClassName);
+            mainGenerationStrategy.generateClassEnd(writer);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void genLogin(String outputPath, String manageClassName) {

@@ -68,7 +68,8 @@ public class LoginGenerationStrategy implements CodeGenerationStrategy {
     }
 
     @Override
-    public void genMethod(PrintWriter writer, String className, String manageClassName) {
+    public void genMethod(PrintWriter writer, String... args) {
+        String manageClassName = args[1];
         genInit(writer);
         genSetListener(writer, manageClassName);
     }
@@ -78,7 +79,7 @@ public class LoginGenerationStrategy implements CodeGenerationStrategy {
         var titlePanel = "titlePanel";
         var fieldPanel = "fieldPanel";
         var buttonPanel = "buttonPanel";
-        CodeUtil.defineMethodPrefix(writer, GlobalConstants.PRIVATE, GlobalConstants.VOID, "init");
+        CodeUtil.defineMethodPrefix(writer, GlobalConstants.FIRST_TAB, GlobalConstants.PRIVATE, "", GlobalConstants.VOID, "init");
 
         createPanel(writer, titlePanel, new FlowLayout());
         createPanel(writer, fieldPanel, null);
@@ -102,7 +103,7 @@ public class LoginGenerationStrategy implements CodeGenerationStrategy {
     private void genSetListener(PrintWriter writer, String manageClassName) {
         var addListener = ".addActionListener(e -> {";
         var addListenerSuffix = "});";
-        CodeUtil.defineMethodPrefix(writer, GlobalConstants.PRIVATE, GlobalConstants.VOID, "setListener");
+        CodeUtil.defineMethodPrefix(writer, GlobalConstants.FIRST_TAB, GlobalConstants.PRIVATE, "", GlobalConstants.VOID, "setListener");
         writer.println("        " + LOGIN_BUTTON + addListener);
         writer.println("            String username = " + USERNAME_FIELD + ".getText();");
         writer.println("            char[] passwordCharArray = " + PASSWORD_FIELD + ".getPassword();");
