@@ -9,6 +9,7 @@ public enum DbTypeEnum {
     VARCHAR("VARCHAR", "String", "setString(", "getString(", ""),
     DOUBLE("DOUBLE", "Double", "setDouble(", "getDouble(", "DOUBLE.valueOf("),
     DECIMAL("DECIMAL", "BigDecimal", "setBigDecimal(", "getBigDecimal(", "BigDecimal.valueOf("),
+    DATE("DATE", "Date", "setDate(", "getDate(", "BigDecimal.valueOf("),
     ;
 
     private final String dbType;

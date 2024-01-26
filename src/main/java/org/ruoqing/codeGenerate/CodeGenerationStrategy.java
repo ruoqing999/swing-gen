@@ -1,6 +1,7 @@
 package org.ruoqing.codeGenerate;
 
 import org.ruoqing.enums.GlobalConstants;
+import org.ruoqing.util.CodeUtil;
 import org.ruoqing.util.JdbcUtil;
 
 import java.io.PrintWriter;
@@ -11,8 +12,7 @@ public interface CodeGenerationStrategy {
 
     void generatePackageAndImport(PrintWriter writer, String className);
 
-    default void genVariable(PrintWriter writer){
-
+    default void genVariable(PrintWriter writer) {
     }
 
     default void generateConstructor(PrintWriter writer, String... args) {
@@ -26,10 +26,10 @@ public interface CodeGenerationStrategy {
 
     default void generateGetterSetter(ResultSet resultSet, PrintWriter writer) throws SQLException {
         while (resultSet.next()) {
-            String columnName = resultSet.getString("COLUMN_NAME");
+            var columnName = resultSet.getString(GlobalConstants.COLUMN_NAME);
             columnName = JdbcUtil.toCamelCase(columnName);
-            String capitalizedColumnName = JdbcUtil.toCapitalized(columnName);
-            String columnType = resultSet.getString("TYPE_NAME");
+            var capitalizedColumnName = JdbcUtil.toCapitalized(columnName);
+            var columnType = resultSet.getString(GlobalConstants.TYPE_NAME);
 
             // Getter
             writer.println("    public " + JdbcUtil.getJavaType(columnType) + " get" + capitalizedColumnName + "() {");
